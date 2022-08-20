@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    <!-- Banner with product picture as background -->
+    <header>
+        <div class="product-banner" style="background-image: url('{{ original_product.image_url }}'">
+            <div class="product-banner-overlay">
+                    <div class="flex">
+                        <div class="product-name">
+                            {{ original_product.name }}
+                        </div>
+                    </div>
+                <br/>
+            </div>
+        </div>
+    </header>
+
+    <!-- List of substitute products -->
+    <section>
+        <br/>
+        <div>
+
+            <center>
+                <h3>Vous pouvez remplacer cet aliment par:</h3>
+                <p>(Cliquez sur une image pour voir les détails)</p>
+                <br/><br/>
+            </center>
+
+            <!-- Message from system -->
+            <center>
+                <div class="col-lg-6">
+                        {% if messages %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for message in messages %}
+                                    {{ message }}
+                                {% endfor %}
+                            </div>            
+                        {% endif%}
+                    </div>
+            </center>
+
+            <!-- List of products -->
+            <div class="container-fluid p-0">
+                <div class="row g-0">
+                        {% for product in substitute_products %}        
+                            <div class="col-lg-4">
+                                <!-- Go to details if picture is clicked -->
+                                <form action = "products_details" method="get">
+                                    <button class="product-as-button" type="submit">
+                                        <input type="hidden" name="original_id" value="{{original_product.id}}"/>
+                                        <input type="hidden" name="substitute_id" value="{{product.id}}"/>
+
+                                        <!-- Picture -->
+                                        <div class="one-row">
+                                            <div class="w-33pc"></div>
+                                            <div class="w-33pc">
+                                                <div class="one-row">
+                                                    <!-- Picture of the product -->
+                                                    <img 
+                                                        src="{{product.image_thumb_url}}"
+                                                        alt="{{product.name}}"
+                                                        title="{{product.name}}" />
+                                                    <!-- Picture of the nutriscore grade -->
+                                                    <img
+                                                        class="mini-nutriscore"
+                                                        src="static/images/nutriscore_{{product.nutriscore_grade}}.jpg"
+                                                        alt="Nutriscore: {{product.nutriscore_grade|upper}}"
+                                                        title="Nutriscore: {{product.nutriscore_grade|upper}}" />
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+
+                                        <!-- Product name and brand -->
+                                        <div class="h-marge" >{{product.name}}</div>
+                                        <div class="h-marge" >Marque: {{product.brands}}</div><br />
+                                    </button>    
+                                </form>
+
+                                <!-- Add original and substitutes to favotites -->
+                                <section>
+                                    <center>
+                                    <form action="products_add_to_favorites" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="original_id" value="{{original_product.id}}"/>
+                                        <input type="hidden" name="substitute_id" value="{{product.id}}"/>
+                                        <input type="hidden" name="user_id" value="{{user.id}}"/>
+                                        <input type="hidden" name="is_submit_button_clicked" value="yes"/>
+                                        <button type="submit" style="background-color: white; border: 1px solid; border-radius: 0.5rem;">
+                                            <div class="one-row">
+                                                <img
+                                                    src="static/images/arrow_right_black.png"
+                                                    alt="Flèche vers la une carotte"
+                                                    title="Enregistrer dans mes aliments"
+                                                    class="img-to-my-fav" />
+                                                <img
+                                                    src="static/images/carotte_server.png"
+                                                    alt="Carotte vivante qui porte un plateau sous cloche"
+                                                    title="Enregistrer dans mes aliments"
+                                                    class="img-to-my-fav" />
+                                                <span class="center-text-vertically">Ajouter à mes aliments</span>
+                                            </div>
+                                        </button>
+                                    </form>
+                                    </center>
+                                    <br/><br/><br/>
+                                </section>
+
+                            </div>
+                            
+                        {% endfor %}
+                    </div>
+                </div>
+
+        </div>
+    </section>
+
+    <!-- Go to previous page -->
+    <section>
+        <br />
+        <form>
+            <input type="button" value="< Page précédente" onclick="history.back()" />
+        </form>
+        <br/>
+    </section>
+
+{% endblock %}

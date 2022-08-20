@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+    <!-- Banner with product picture as background -->
+    <header>
+        <div class="product-banner" style="background-image: url('{{ substitute_product.image_url }}'">
+            <div class="product-banner-overlay">
+                    <div class="flex">
+                        <div class="product-name">
+                            {{ substitute_product.name }}
+                        </div>
+                    </div>
+                <br/>
+            </div>
+        </div>
+    </header>
+
+    <!-- Message from system -->
+    <br/>
+    <center>
+        <div class="col-lg-6">
+                {% if messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>            
+                {% endif%}
+            </div>
+    </center>
+
+    <!-- Details of substitute product -->
+    <section>
+        <div>        
+            <div class="container-fluid p-0">
+                <div class="row g-0"> 
+
+                    <!-- Picture of the product with nutriscore grade -->
+                    <div class="col-lg-6">
+                        <center>
+                            <div class="one-row h-center">
+                                <!-- Picture of the product -->
+                                <img
+                                    src="{{substitute_product.image_url}}"
+                                    alt="{{substitute_product.name}}"
+                                    title="{{substitute_product.name}}" />
+                                <!-- Picture of the nutriscore grade -->
+                                <div>
+                                    <img
+                                        class="mini-nutriscore"
+                                        src="static/images/nutriscore_{{substitute_product.nutriscore_grade}}.jpg"
+                                        alt="Nutriscore: {{substitute_product.nutriscore_grade|upper}}"
+                                        title="Nutriscore: {{substitute_product.nutriscore_grade|upper}}" />
+                                </div>
+                            </div>
+                        </center>
+                        <br/><br/>
+                    </div>
+
+                        <br/><br/>
+
+                    <!-- Ingredients and nutriments for 100g -->
+                    <div class="col-lg-6">
+                        <center>
+                            <!-- Ingredients -->
+                            <p class=".h-marge">
+                                <b>Ingrédients</b>
+                            </p>
+                            <p class="h-marge">
+                                {{ substitute_product.ingredients_text }}
+                            </p>
+                            <br/>
+
+                            <!-- nutriments for 100g -->
+                            <p>
+                                <b>Repères nutritionnels pour 100g</b>
+                            </p>
+                            <p>
+                                    {% for key, value in substitute_product.nutriments.items %}
+
+                                        {% if key == "energy_100g" %}
+                                            Energie: {{value}}kcal<br/>
+                                        {% endif %}
+
+                                        {% if key == "sugars_100g" %}
+                                            Sucre: {{value}}g<br/>
+                                        {% endif %}
+
+                                        {% if key == "salt_100g" %}
+                                            Sel: {{value}}g<br/>
+                                            {% endif %}
+
+                                        {% if key == "fat_100g" %}
+                                            Graisse: {{value}}g<br/>
+                                        {% endif %}
+
+                                        {% if key == "fiber_100g" %}
+                                            Fibres: {{value}}g<br/>
+                                        {% endif %}
+                                    {% endfor %}
+                            </p>
+                        </center>
+                        <br/><br/>
+                    </div>
+
+                    <center>
+                        <a href="{{ substitute_product.url }}" target="_blank">
+                            <button class="biscuits-as-background-for-button" type="button">
+                                <span class="layer-for_text-visibility" >Voir la fiche d'OpenFoodFact</span>
+                            </button>
+                        </a>
+                    </center>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Add original and substitutes to favotites -->
+    <section>
+        <center>
+        {% if messages %}
+        {% else %}
+        {% if original_product.id %}
+            <form action="products_add_to_favorites" method="post">
+
+                {% csrf_token %}
+                <input type="hidden" name="original_id" value="{{original_product.id}}"/>
+                <input type="hidden" name="substitute_id" value="{{substitute_product.id}}"/>
+                <input type="hidden" name="user_id" value="{{user.id}}"/>
+                <input type="hidden" name="is_submit_button_clicked" value="yes"/>
+
+
+                <button type="submit" style="background-color: white; border: 1px solid; border-radius: 0.5rem;">
+                    <div class="one-row">
+                        <img
+                            src="static/images/arrow_right_black.png"
+                            alt="Flèche vers la une carotte"
+                            title="Enregistrer dans mes aliments"
+                            class="img-to-my-fav" />
+                        <img
+                            src="static/images/carotte_server.png"
+                            alt="Carotte vivante qui porte un plateau sous cloche"
+                            title="Enregistrer dans mes aliments"
+                            class="img-to-my-fav" />
+                        <span class="center-text-vertically">Ajouter à mes aliments</span>
+                    </div>
+                </button>
+
+            </form>
+        {% endif %}
+        {% endif %}
+        </center>
+        <br/><br/><br/>
+    </section>
+
+
+    <!-- Go to previous page -->
+    <section>
+        <br />
+        <form>
+            <input type="button" value="< Page précédente" onclick="history.back()" />
+        </form>
+        <br/>
+    </section>
+
+{% endblock %}

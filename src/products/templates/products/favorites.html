@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Masthead-->
+<header class="masthead-h-25">
+    <div class="container px-4 px-lg-5 h-20">
+        <div class="row gx-4 gx-lg-5 h-20 align-items-center justify-content-center text-center">
+            <div class="col-lg-8 align-self-baseline">
+                <br/><br/><br/>
+                <h2 class="text-white-75 mb-5 margin-top-20">
+                    Mes aliments
+                </h2>              
+            </div>
+        </div>
+    </div>
+</header>
+<br/><br/>
+
+<section>
+    <br/>
+    <div>
+
+        <!-- Message from system -->
+        <center>
+            <div class="col-lg-6">
+                    {% if messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                        </div>            
+                    {% endif%}
+                </div>
+        </center>
+
+        <!-- List of products -->
+        <div class="container-fluid p-0">
+            <div class="row g-0">
+                    {% for product in favorite_products %}        
+                        <div class="col-lg-4">
+                            <!-- Go to details if picture is clicked -->
+                            <form action = "products_details" method="get">
+                                <button class="product-as-button" type="submit">
+                                    <input type="hidden" name="original_id" value="{{original_product.id}}"/>
+                                    <input type="hidden" name="substitute_id" value="{{product.id}}"/>
+
+                                    <!-- Picture -->
+                                    <div class="one-row">
+                                        <div class="w-33pc"></div>
+                                        <div class="w-33pc">
+                                            <div class="one-row">
+                                                <!-- Picture of the product -->
+                                                <img
+                                                    class="image-thumb-of-product" 
+                                                    src="{{product.image_thumb_url}}"
+                                                    alt="{{product.name}}"
+                                                    title="{{product.name}}" />
+                                                <!-- Picture of the nutriscore grade -->
+                                                <img
+                                                    class="mini-nutriscore"
+                                                    src="static/images/nutriscore_{{product.nutriscore_grade}}.jpg"
+                                                    alt="Nutriscore: {{product.nutriscore_grade|upper}}"
+                                                    title="Nutriscore: {{product.nutriscore_grade|upper}}" />
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+                                    <!-- Product name and brand -->
+                                    <div class="h-marge" >{{product.name}}</div>
+                                    <div class="h-marge" >Marque: {{product.brands}}</div><br />
+                                </button>    
+                            </form>
+                            <br/><br/>
+
+                        </div>
+                        
+                    {% endfor %}
+                </div>
+            </div>
+
+    </div>
+</section>
+
+{% endblock %}
