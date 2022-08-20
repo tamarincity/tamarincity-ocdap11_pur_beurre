@@ -1,14 +1,25 @@
 import logging
+from random import randint
+from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 
 from products.models import L_Favorite
 from accounts.models import Customer
-from accounts.constants import USER_LARA_CROFT
+from accounts.constants import (
+    OTP_VALIDITY_DURATION_IN_MINUTE,
+    USER_LARA_CROFT,
+)
+from accounts.utils import (
+    create_random_chars,
+    send_email,
+)
 
 
 User = get_user_model()
@@ -21,6 +32,13 @@ def _get_credentials(request):
     return username, password
 
 
+# Get OTP and password sent via the form
+def _get_otp_n_pswd_from_request(request):
+    otp_code = request.POST.get('otp', None)
+    password = request.POST.get('password', None)
+    return otp_code, password
+
+
 # Check if the email is properly formed
 def check_mail_validity(email: str) -> bool:
     try:
@@ -28,6 +46,48 @@ def check_mail_validity(email: str) -> bool:
         return True
     except ValidationError:
         return False
+
+
+def create_otp():
+    """Create OTP (One Time Password) with a datetime validity"""
+
+    # Create OTP_code
+    otp_code = create_random_chars(randint(8, 12))
+
+    # Create end datetime of otp_code
+    now = datetime.now()
+    otp_end_datetime = now + timedelta(minutes=OTP_VALIDITY_DURATION_IN_MINUTE)
+
+    return otp_code, otp_end_datetime
+
+
+def forgoten_pswd(request):
+    list(messages.get_messages(request))  # Clear all system messages
+
+    if request.method == 'POST':
+        email, _ = _get_credentials(request)
+
+        if not email:
+            messages.success(request, ("Vous devez entrer votre adresse e-mail !"))
+            return render(request, 'accounts/forgoten_pswd.html')
+
+        if is_email_valid := check_mail_validity(email):
+
+            otp_code, otp_validity_end_datetime = create_otp()
+
+            customer = Customer.objects.get(username=email)
+            if customer:
+                customer.otp = otp_code
+                customer.otp_validity_end_datetime = otp_validity_end_datetime
+                customer.save()
+
+                is_email_sent = send_email(email, otp_code, OTP_VALIDITY_DURATION_IN_MINUTE)
+                if is_email_sent:
+                    return redirect('accounts_new_pswd')
+
+                messages.success(request, ("Une erreur inattendue est survenue !"))
+
+    return render(request, "accounts/forgoten_pswd.html")
 
 
 def login_user(request):
@@ -54,6 +114,38 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect('products_home')
+
+
+def new_pswd(request):
+    list(messages.get_messages(request))  # Clear all system messages
+
+    if request.method == 'POST':
+        otp_code, password = _get_otp_n_pswd_from_request(request)
+
+        if not otp_code or not password:
+            messages.success(request, ("Tous les champs doivent être remplis !"))
+            return render(request, 'accounts/new_pswd.html')
+
+        try:
+            # Get the user corresponding to the OTP and OTP validity end datetime
+            user = Customer.objects.get(
+                Q(otp=otp_code) & Q(otp_validity_end_datetime__gte=datetime.now()))
+
+            # Update the user's password
+            user.set_password(password)
+            user.save()
+
+            # Connect the user
+            login(request, user)
+
+            return redirect('products_home')
+
+        except ObjectDoesNotExist:
+            logging.debug("No customer found for this otp and valdity datetime")
+
+        messages.success(request, ("Code OTP non valide !"))
+
+    return render(request, "accounts/new_pswd.html")
 
 
 def signup_user(request):
