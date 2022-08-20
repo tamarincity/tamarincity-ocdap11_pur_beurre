@@ -183,7 +183,14 @@ def get_origial_product(request):
         keywords = utils.format_text(keywords)
         original_products = Product.find_original_products(keywords)
 
-    if len(original_products) == 0:
+    if not keywords:
+        logging.info("No keywords sent by user!")
+        messages.success(
+            request, ("Vous devez entrer des mots clefs afin de déterminer le "
+                        "produit original que vous souhaitez substituer")
+        )
+
+    if keywords and len(original_products) == 0:
         logging.info("No original products found!")
         messages.success(
             request, ("Aucun produit trouvé ! Essayez avec d'autres mots-clefs.")

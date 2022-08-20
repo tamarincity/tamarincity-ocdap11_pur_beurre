@@ -1,5 +1,5 @@
 [flake8]
-ignore = W503, E126, E712, E127, E711, E131, F401  # Error code 503 are ignored
+ignore = W503, E126, E712, E127, E711, E131, F401, F841  # Error code that are ignored
 exclude =
     .git,
     __pycache__,
@@ -17,6 +17,7 @@ exclude =
     Pipfile,
     Pipfile.lock,
     Procfile,
+    production.py,
     README.MD,
     requirements.txt,
     zzz*.py,
