@@ -5,22 +5,41 @@ import pytest
 from accounts.constants import USER_LARA_CROFT
 
 
+PRODUCTION_DOMAIN_NAME = "http://142.93.142.2"
+PORT = "5550"
+DEV_DOMAIN_NAME = "http://localhost:" + PORT
+
+DOMAIN_NAME = DEV_DOMAIN_NAME
 @pytest.mark.functional_test
 @pytest.mark.usefixtures("init_driver")  # From conftest.py - Select and initialyze the driver
 class TestApplication:
     def test_signup(self):
+        global DOMAIN_NAME
+        if DOMAIN_NAME == PRODUCTION_DOMAIN_NAME:
+            SPECIAL_COLOR = "\033[1;33;41m"
+            NORMAL_COLOR = "\033[0;0;0m"
+            print()
+            print(SPECIAL_COLOR + "------------!!! THE TESTED DOMAINE NAME IS THE ONE FOR PRODUCTION !!!-------------", end="")
+            print(NORMAL_COLOR)
         try:
             driver = self.driver
             find = driver.find_element_by_xpath
 
             # Remove fake users from database
-            driver.get("http://142.93.142.2/accounts_delete_fake_users")
+            driver.get(DOMAIN_NAME + "/accounts_delete_fake_users")
 
             # Go to home page
             print("No characters after the domain name should take the user to the home page")
-            driver.get("http://142.93.142.2")
+            driver.get(DOMAIN_NAME)
             time.sleep(2)
             h1_content = find("//h1").text
+            assert "Du gras, oui, mais de qualit" in h1_content
+
+            # Click on the submit btn of the search bar without entering anything
+            print("Clicking on the submit btn of the search bar without entering anything "
+                        "should let the user on the same page without changing anything")
+            find("//button[@type='submit']").click()
+            time.sleep(2)
             assert "Du gras, oui, mais de qualit" in h1_content
 
             # Enter keywords to get the original product
@@ -170,7 +189,7 @@ class TestApplication:
 
             time.sleep(2)
             # Remove fake users from database
-            driver.get("http://142.93.142.2/accounts_delete_fake_users")
+            driver.get(DOMAIN_NAME + "/accounts_delete_fake_users")
 
         except Exception as e:
             driver.save_screenshot("screenshot_of fail.png")
